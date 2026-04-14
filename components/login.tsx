@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Mail, Lock, Eye, EyeOff } from "lucide-react"
 
 type LoginProps = {
-  onLogin: (email: string) => void
+  onLogin: (email: string, token: string) => void
 }
 
 export default function Login({ onLogin }: LoginProps) {
@@ -14,7 +14,7 @@ export default function Login({ onLogin }: LoginProps) {
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
 
@@ -36,11 +36,32 @@ export default function Login({ onLogin }: LoginProps) {
 
     setIsLoading(true)
 
-    // Simulate login delay
-    setTimeout(() => {
+    try {
+      // Call the actual backend login endpoint
+      const response = await fetch("http://localhost:8080/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ email, password })
+      })
+
+      const data = await response.json()
+
+      if (response.ok && data.data?.token) {
+        // Successfully logged in with token
+        console.log("Login successful, token received")
+        onLogin(email, data.data.token)
+      } else {
+        // Login failed
+        setError(data.message || "Invalid email or password")
+      }
+    } catch (err) {
+      console.error("Login error:", err)
+      setError("Cannot connect to server. Please check if the backend is running on port 8080.")
+    } finally {
       setIsLoading(false)
-      onLogin(email)
-    }, 800)
+    }
   }
 
   return (
@@ -59,6 +80,7 @@ export default function Login({ onLogin }: LoginProps) {
           <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-8">
             <div className="text-center mb-8">
               <h2 className="text-2xl font-semibold text-slate-800 mb-2">Welcome to CaseWise</h2>
+              <p className="text-sm text-slate-600">Sign in to access the case management system</p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-5">
@@ -144,6 +166,18 @@ export default function Login({ onLogin }: LoginProps) {
               </button>
             </form>
 
+            {/* Development Note */}
+            <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-xs text-blue-700 mb-2">
+                <strong>Backend Connection:</strong>
+              </p>
+              <p className="text-xs text-blue-600">
+                Make sure your Spring Boot backend is running on <code className="bg-blue-100 px-1 rounded">http://localhost:8080</code>
+              </p>
+              <p className="text-xs text-blue-600 mt-1">
+                Endpoint: <code className="bg-blue-100 px-1 rounded">POST /api/auth/login</code>
+              </p>
+            </div>
           </div>
         </div>
       </div>
