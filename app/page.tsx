@@ -1,27 +1,33 @@
 "use client"
 import { useState, useEffect, useRef } from "react"
-import { Search, Filter, Plus, ChevronDown, X, Eye, User, MessageCircle, Send, Loader2 } from "lucide-react"
+import { Search, Filter, Plus, ChevronDown, X, Eye, User, MessageCircle, Send, Loader2, Paperclip, FileText, Image as ImageIcon, File, ExternalLink, Download, Edit2, ChevronLeft, ChevronRight } from "lucide-react"
 import Login from "@/components/login"
 
 // Initial cases data
 const initialCases = [
-  { id: 1, firstName: "Cedric", lastName: "Manzi", caseNumber: "CW-2026-001", status: "Open", description: "Property dispute case" },
-  { id: 2, firstName: "Jane", lastName: "Muhoza", caseNumber: "CW-2026-002", status: "Pending", description: "Civil litigation matter" },
-  { id: 3, firstName: "Robert", lastName: "Kalisa", caseNumber: "CW-2026-003", status: "Open", description: "Contract breach case" },
-  { id: 4, firstName: "Emille", lastName: "Gakuba", caseNumber: "CW-2026-004", status: "Closed", description: "Employment dispute" },
-  { id: 5, firstName: "Michael", lastName: "Rugamba", caseNumber: "CW-2026-005", status: "Open", description: "Insurance claim case" },
-  { id: 6, firstName: "Sarah", lastName: "Mbabazi", caseNumber: "CW-2026-006", status: "Pending", description: "Family law matter" },
-  { id: 7, firstName: "David", lastName: "Mugisha", caseNumber: "CW-2026-007", status: "Open", description: "Business partnership dispute" },
-  { id: 8, firstName: "Grace", lastName: "Cyusa", caseNumber: "CW-2026-008", status: "Open", description: "Real estate transaction" },
-  { id: 9, firstName: "Patrick", lastName: "Hirwa", caseNumber: "CW-2026-009", status: "Pending", description: "Intellectual property case" },
-  { id: 10, firstName: "Jean", lastName: "Manzi", caseNumber: "CW-2026-010", status: "Open", description: "Criminal defense case" },
+  { id: 1, firstName: "Cedric", lastName: "Manzi", caseNumber: "CW-2026-001", status: "Open", description: "Property dispute case", court: "", caseSummary: "", crimeCategory: "Civil Case", crimeType: "Property Dispute", crimeCommittedDate: "", crimeCommittedTime: "", crimeDescription: "Dispute over land ownership boundaries between two neighboring families.", caseParties: [], attachments: [] },
+  { id: 2, firstName: "Jane", lastName: "Muhoza", caseNumber: "CW-2026-002", status: "Pending", description: "Civil litigation matter", court: "", caseSummary: "", crimeCategory: "Civil Case", crimeType: "Litigation", crimeCommittedDate: "", crimeCommittedTime: "", crimeDescription: "Civil litigation matter regarding contractual obligations.", caseParties: [], attachments: [] },
+  { id: 3, firstName: "Robert", lastName: "Kalisa", caseNumber: "CW-2026-003", status: "Open", description: "Contract breach case", court: "", caseSummary: "", crimeCategory: "Civil Case", crimeType: "Contract Breach", crimeCommittedDate: "", crimeCommittedTime: "", crimeDescription: "Breach of service agreement between business partners.", caseParties: [], attachments: [] },
+  { id: 4, firstName: "Emille", lastName: "Gakuba", caseNumber: "CW-2026-004", status: "Closed", description: "Employment dispute", court: "", caseSummary: "", crimeCategory: "Civil Case", crimeType: "Employment Dispute", crimeCommittedDate: "", crimeCommittedTime: "", crimeDescription: "Wrongful termination claim filed by former employee.", caseParties: [], attachments: [] },
+  { id: 5, firstName: "Michael", lastName: "Rugamba", caseNumber: "CW-2026-005", status: "Open", description: "Insurance claim case", court: "", caseSummary: "", crimeCategory: "Civil Case", crimeType: "Insurance Claim", crimeCommittedDate: "", crimeCommittedTime: "", crimeDescription: "Disputed insurance claim following vehicle accident.", caseParties: [], attachments: [] },
+  { id: 6, firstName: "Sarah", lastName: "Mbabazi", caseNumber: "CW-2026-006", status: "Pending", description: "Family law matter", court: "", caseSummary: "", crimeCategory: "Civil Case", crimeType: "Family Law", crimeCommittedDate: "", crimeCommittedTime: "", crimeDescription: "Custody arrangement proceedings involving minor children.", caseParties: [], attachments: [] },
+  { id: 7, firstName: "David", lastName: "Mugisha", caseNumber: "CW-2026-007", status: "Open", description: "Business partnership dispute", court: "", caseSummary: "", crimeCategory: "Civil Case", crimeType: "Partnership Dispute", crimeCommittedDate: "", crimeCommittedTime: "", crimeDescription: "Dissolution of business partnership and asset division.", caseParties: [], attachments: [] },
+  { id: 8, firstName: "Grace", lastName: "Cyusa", caseNumber: "CW-2026-008", status: "Open", description: "Real estate transaction", court: "", caseSummary: "", crimeCategory: "Civil Case", crimeType: "Real Estate", crimeCommittedDate: "", crimeCommittedTime: "", crimeDescription: "Fraudulent real estate transaction dispute.", caseParties: [], attachments: [] },
+  { id: 9, firstName: "Patrick", lastName: "Hirwa", caseNumber: "CW-2026-009", status: "Pending", description: "Intellectual property case", court: "", caseSummary: "", crimeCategory: "Civil Case", crimeType: "IP Infringement", crimeCommittedDate: "", crimeCommittedTime: "", crimeDescription: "Trademark infringement claim by registered IP owner.", caseParties: [], attachments: [] },
+  { id: 10, firstName: "Jean", lastName: "Manzi", caseNumber: "CW-2026-010", status: "Open", description: "Criminal defense case", court: "", caseSummary: "", crimeCategory: "Criminal Case", crimeType: "Criminal Defense", crimeCommittedDate: "", crimeCommittedTime: "", crimeDescription: "Criminal defense proceedings for assault charges.", caseParties: [], attachments: [] },
 ]
 
-const filterOptions = {
-  caseNumber: ["CW-2026-001", "CW-2026-002", "CW-2026-003", "CW-2026-004", "CW-2026-005"],
-  suspect: ["Cedric Manzi", "Robert Kalisa", "Michael Rugamba"],
-  victim: ["Jane Muhoza", "Emille Gakuba", "Sarah Mbabazi"],
-  names: ["John", "Jane", "Robert", "Emille", "Michael", "Sarah", "David", "Mugisha", "Cyusa", "Hirwa"],
+type CaseParty = {
+  id: string
+  firstName: string
+  lastName: string
+  role: string
+  idNumber: string
+  phone: string
+  email: string
+  gender: string
+  dateOfBirth: string
+  status: string
 }
 
 type Case = {
@@ -31,12 +37,111 @@ type Case = {
   caseNumber: string
   status: string
   description: string
+  court: string
+  caseSummary: string
+  crimeCategory: string
+  crimeType: string
+  crimeCommittedDate: string
+  crimeCommittedTime: string
+  crimeDescription: string
+  caseParties: CaseParty[]
+  attachments: File[]
 }
 
 type ChatMessage = {
   id: string
   role: "user" | "assistant"
   content: string
+}
+
+type Toast = {
+  id: string
+  message: string
+  type: "success" | "error" | "info"
+}
+
+// Helper to get file icon based on type
+function getFileIcon(file: File) {
+  if (file.type.startsWith("image/")) return <ImageIcon className="w-4 h-4 text-blue-500" />
+  if (file.type === "application/pdf") return <FileText className="w-4 h-4 text-red-500" />
+  return <File className="w-4 h-4 text-slate-500" />
+}
+
+// Helper to format file size
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+}
+
+// Pagination component
+function Pagination({ 
+  currentPage, 
+  totalPages, 
+  onPageChange 
+}: { 
+  currentPage: number
+  totalPages: number
+  onPageChange: (page: number) => void
+}) {
+  return (
+    <div className="flex items-center justify-center gap-2 mt-6">
+      <button
+        onClick={() => onPageChange(currentPage - 1)}
+        disabled={currentPage === 1}
+        className="px-3 py-2 border border-slate-200 rounded-md hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+      >
+        <ChevronLeft className="w-4 h-4" />
+      </button>
+      <div className="flex items-center gap-1">
+        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+          <button
+            key={page}
+            onClick={() => onPageChange(page)}
+            className={`px-3 py-2 rounded-md transition-colors ${
+              currentPage === page
+                ? "bg-slate-800 text-white"
+                : "border border-slate-200 hover:bg-slate-50"
+            }`}
+          >
+            {page}
+          </button>
+        ))}
+      </div>
+      <button
+        onClick={() => onPageChange(currentPage + 1)}
+        disabled={currentPage === totalPages}
+        className="px-3 py-2 border border-slate-200 rounded-md hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+      >
+        <ChevronRight className="w-4 h-4" />
+      </button>
+    </div>
+  )
+}
+
+// Toast notification component
+function ToastNotification({ toast, onClose }: { toast: Toast; onClose: () => void }) {
+  useEffect(() => {
+    const timer = setTimeout(onClose, 3000)
+    return () => clearTimeout(timer)
+  }, [onClose])
+
+  return (
+    <div
+      className={`fixed top-20 right-6 z-50 px-6 py-4 rounded-lg shadow-lg border flex items-center gap-3 animate-slide-in ${
+        toast.type === "success"
+          ? "bg-green-50 border-green-200 text-green-800"
+          : toast.type === "error"
+          ? "bg-red-50 border-red-200 text-red-800"
+          : "bg-blue-50 border-blue-200 text-blue-800"
+      }`}
+    >
+      <span className="font-medium">{toast.message}</span>
+      <button onClick={onClose} className="text-current opacity-60 hover:opacity-100 transition-opacity">
+        <X className="w-4 h-4" />
+      </button>
+    </div>
+  )
 }
 
 export default function CaseWiseDashboard() {
@@ -47,9 +152,13 @@ export default function CaseWiseDashboard() {
   const [myCases, setMyCases] = useState<Case[]>([])
   const [searchQuery, setSearchQuery] = useState("")
   const [activeFilter, setActiveFilter] = useState<string | null>(null)
-  const [selectedFilters, setSelectedFilters] = useState<Record<string, string>>({})
-  const [activeView, setActiveView] = useState<"registration" | "myCases" | "laws">("registration")
+  const [selectedFilters, setSelectedFilters] = useState<Record<string, string>>({
+    caseNumber: "",
+    status: ""
+  })
+  const [activeView, setActiveView] = useState<"registration" | "manageCases" | "laws">("registration")
   const [showRegisterModal, setShowRegisterModal] = useState(false)
+  const [editingCase, setEditingCase] = useState<Case | null>(null)
   const [newCase, setNewCase] = useState({
     caseTitle: "",
     court: "",
@@ -70,20 +179,18 @@ export default function CaseWiseDashboard() {
     casePartyEmail: "",
     attachments: [] as File[]
   })
-  const [caseParties, setCaseParties] = useState<Array<{
-    id: string
-    firstName: string
-    lastName: string
-    role: string
-    idNumber: string
-    phone: string
-    email: string
-    gender: string
-    dateOfBirth: string
-    status: string
-  }>>([])
+  const [caseParties, setCaseParties] = useState<CaseParty[]>([])
   const [expandedParties, setExpandedParties] = useState<Set<string>>(new Set())
   const [selectedCase, setSelectedCase] = useState<Case | null>(null)
+  const [previewFile, setPreviewFile] = useState<{ file: File; url: string } | null>(null)
+  const [activeDetailsTab, setActiveDetailsTab] = useState<"info" | "parties" | "attachments">("info")
+  const [toasts, setToasts] = useState<Toast[]>([])
+  const [lawAttachments, setLawAttachments] = useState<File[]>([])
+
+  // Pagination state
+  const [dashboardPage, setDashboardPage] = useState(1)
+  const [manageCasesPage, setManageCasesPage] = useState(1)
+  const itemsPerPage = 5
 
   // ── Chatbot state ──────────────────────────────────────────
   const [chatOpen, setChatOpen] = useState(false)
@@ -97,7 +204,6 @@ export default function CaseWiseDashboard() {
   const [chatInput, setChatInput] = useState("")
   const [chatLoading, setChatLoading] = useState(false)
   const chatBottomRef = useRef<HTMLDivElement>(null)
-  // ──────────────────────────────────────────────────────────
 
   // Load cases from backend
   useEffect(() => {
@@ -123,6 +229,13 @@ export default function CaseWiseDashboard() {
     chatBottomRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [chatMessages])
 
+  // Cleanup preview URL on unmount
+  useEffect(() => {
+    return () => {
+      if (previewFile) URL.revokeObjectURL(previewFile.url)
+    }
+  }, [previewFile])
+
   const handleLogin = (email: string, token: string) => {
     setUserEmail(email)
     setAuthToken(token)
@@ -140,8 +253,42 @@ export default function CaseWiseDashboard() {
     localStorage.removeItem('userEmail')
   }
 
+  // Toast management
+  const showToast = (message: string, type: "success" | "error" | "info" = "success") => {
+    const id = Date.now().toString()
+    setToasts(prev => [...prev, { id, message, type }])
+  }
+
+  const removeToast = (id: string) => {
+    setToasts(prev => prev.filter(t => t.id !== id))
+  }
+
   if (!isLoggedIn) {
     return <Login onLogin={handleLogin} />
+  }
+
+  // ── Open attachment preview ─────────────────────────────────
+  const handleOpenAttachment = (file: File) => {
+    if (previewFile) URL.revokeObjectURL(previewFile.url)
+    const url = URL.createObjectURL(file)
+    if (file.type.startsWith("image/") || file.type === "application/pdf") {
+      window.open(url, "_blank")
+    } else {
+      const a = document.createElement("a")
+      a.href = url
+      a.download = file.name
+      a.click()
+    }
+    setPreviewFile({ file, url })
+  }
+
+  const handleDownloadAttachment = (file: File) => {
+    const url = URL.createObjectURL(file)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = file.name
+    a.click()
+    setTimeout(() => URL.revokeObjectURL(url), 1000)
   }
 
   // ── Chatbot send message ───────────────────────────────────
@@ -197,7 +344,6 @@ Be concise, professional, and helpful. If asked about specific cases, refer to t
       setChatLoading(false)
     }
   }
-  // ──────────────────────────────────────────────────────────
 
   const toggleFilter = (filter: string) => {
     setActiveFilter(activeFilter === filter ? null : filter)
@@ -218,14 +364,42 @@ Be concise, professional, and helpful. If asked about specific cases, refer to t
 
   const handleRegisterCase = async () => {
     if (!newCase.caseTitle) {
-      alert("Please fill in case title")
+      showToast("Please fill in case title", "error")
       return
     }
     if (caseParties.length === 0) {
-      alert("Please add at least one case party")
+      showToast("Please add at least one case party", "error")
       return
     }
 
+    const isEditing = !!editingCase
+
+    // If editing, update the existing case
+    if (isEditing) {
+      const updatedCase: Case = {
+        ...editingCase,
+        description: newCase.caseSummary || "Updated case",
+        court: newCase.court,
+        caseSummary: newCase.caseSummary,
+        crimeCategory: newCase.crimeCategory,
+        crimeType: newCase.crimeType,
+        crimeCommittedDate: newCase.crimeCommittedDate,
+        crimeCommittedTime: newCase.crimeCommittedTime,
+        crimeDescription: newCase.crimeDescription,
+        caseParties: caseParties,
+        attachments: newCase.attachments,
+      }
+
+      setCases(prev => prev.map(c => c.id === editingCase.id ? updatedCase : c))
+      setMyCases(prev => prev.map(c => c.id === editingCase.id ? updatedCase : c))
+      setShowRegisterModal(false)
+      setEditingCase(null)
+      showToast("Case Updated Successfully", "success")
+      resetForm()
+      return
+    }
+
+    // Existing registration logic
     console.log("=== COMPREHENSIVE BACKEND TESTING ===")
     const testResults = []
 
@@ -273,7 +447,28 @@ Be concise, professional, and helpful. If asked about specific cases, refer to t
 
     const workingTests = testResults.filter(t => t.ok)
     if (workingTests.length === 0) {
-      alert("❌ Backend not accessible at all. Please check if it's running on port 8080.\n\nTest results:\n" + JSON.stringify(testResults, null, 2))
+      const localCase: Case = {
+        id: cases.length + 1,
+        firstName: caseParties[0]?.firstName || "",
+        lastName: caseParties[0]?.lastName || "",
+        caseNumber: generateCaseNumber(),
+        status: "Open",
+        description: newCase.caseSummary || "New case registration",
+        court: newCase.court,
+        caseSummary: newCase.caseSummary,
+        crimeCategory: newCase.crimeCategory,
+        crimeType: newCase.crimeType,
+        crimeCommittedDate: newCase.crimeCommittedDate,
+        crimeCommittedTime: newCase.crimeCommittedTime,
+        crimeDescription: newCase.crimeDescription,
+        caseParties: caseParties,
+        attachments: newCase.attachments,
+      }
+      setCases(prev => [...prev, localCase])
+      setMyCases(prev => [...prev, localCase])
+      setShowRegisterModal(false)
+      showToast("Register Case Successful", "success")
+      resetForm()
       return
     }
 
@@ -331,7 +526,7 @@ Be concise, professional, and helpful. If asked about specific cases, refer to t
           data = { message: "Empty response from server" }
         }
       } catch {
-        alert("Server response is not valid JSON. Please check the server logs.")
+        showToast("Server response is not valid JSON", "error")
         return
       }
 
@@ -343,25 +538,21 @@ Be concise, professional, and helpful. If asked about specific cases, refer to t
           caseNumber: data.data?.caseNumber || generateCaseNumber(),
           status: "Open",
           description: newCase.caseSummary || "New case registration",
+          court: newCase.court,
+          caseSummary: newCase.caseSummary,
+          crimeCategory: newCase.crimeCategory,
+          crimeType: newCase.crimeType,
+          crimeCommittedDate: newCase.crimeCommittedDate,
+          crimeCommittedTime: newCase.crimeCommittedTime,
+          crimeDescription: newCase.crimeDescription,
+          caseParties: caseParties,
+          attachments: newCase.attachments,
         }
         setCases([...cases, caseToAdd])
         setMyCases([...myCases, caseToAdd])
         setShowRegisterModal(false)
-        alert("Case registered successfully!")
-
-        setNewCase({
-          caseTitle: "", court: "", caseSummary: "",
-          crimeCategory: "Criminal Case", crimeType: "",
-          crimeCommittedDate: "", crimeCommittedTime: "",
-          crimeDescription: "", casePartyFirstName: "",
-          casePartyLastName: "", casePartyIDNumber: "",
-          casePartyGender: "", casePartyDOB: "",
-          casePartyStatus: "Single",
-          casePartyRole: { witness: false, suspect: false, defendant: false },
-          casePartyPhone: "", casePartyEmail: "",
-          attachments: []
-        })
-        setCaseParties([])
+        showToast("Register Case Successful", "success")
+        resetForm()
       } else if (response.status === 401 || response.status === 403) {
         try {
           const altResponse = await fetch("http://localhost:8080/api/cases/create", {
@@ -370,41 +561,47 @@ Be concise, professional, and helpful. If asked about specific cases, refer to t
             body: JSON.stringify(payload)
           })
           if (altResponse.ok) {
-            alert("Case registered successfully (without auth)!")
+            showToast("Register Case Successful", "success")
             setShowRegisterModal(false)
             return
           }
         } catch { /* ignore */ }
-        alert("Authentication failed. Please re-login.\n\nError: " + (data?.message || "Unauthorized"))
+        showToast("Authentication failed. Please re-login.", "error")
         handleLogout()
       } else if (response.status === 404) {
-        alert("Endpoint not found: POST /api/cases/create does not exist on the server.")
+        showToast("Endpoint not found", "error")
       } else if (response.status >= 500) {
-        alert("Server error. Please check the backend logs.")
+        showToast("Server error. Please check the backend logs.", "error")
       } else {
-        alert("Error: " + (data?.message || `${response.status} ${response.statusText}`))
+        showToast(data?.message || "Registration failed", "error")
       }
     } catch {
-      alert("Cannot connect to server. Please check if the backend is running on http://localhost:8080")
+      showToast("Cannot connect to server", "error")
     }
   }
 
-  const addToMyCases = (caseItem: Case) => {
-    if (!myCases.find((c) => c.id === caseItem.id)) {
-      setMyCases([...myCases, caseItem])
-    }
-  }
-
-  const removeFromMyCases = (caseId: number) => {
-    setMyCases(myCases.filter((c) => c.id !== caseId))
+  const resetForm = () => {
+    setNewCase({
+      caseTitle: "", court: "", caseSummary: "",
+      crimeCategory: "Criminal Case", crimeType: "",
+      crimeCommittedDate: "", crimeCommittedTime: "",
+      crimeDescription: "", casePartyFirstName: "",
+      casePartyLastName: "", casePartyIDNumber: "",
+      casePartyGender: "", casePartyDOB: "",
+      casePartyStatus: "Single",
+      casePartyRole: { witness: false, suspect: false, defendant: false },
+      casePartyPhone: "", casePartyEmail: "",
+      attachments: []
+    })
+    setCaseParties([])
   }
 
   const handleAddCaseParty = () => {
     if (!newCase.casePartyFirstName || !newCase.casePartyLastName) {
-      alert("Please enter first name and last name")
+      showToast("Please enter first name and last name", "error")
       return
     }
-    const newParty = {
+    const newParty: CaseParty = {
       id: Date.now().toString(),
       firstName: newCase.casePartyFirstName,
       lastName: newCase.casePartyLastName,
@@ -434,17 +631,158 @@ Be concise, professional, and helpful. If asked about specific cases, refer to t
     setExpandedParties(newExpanded)
   }
 
+  const handleEditCase = (caseItem: Case) => {
+    setEditingCase(caseItem)
+    setNewCase({
+      caseTitle: caseItem.description,
+      court: caseItem.court,
+      caseSummary: caseItem.caseSummary,
+      crimeCategory: caseItem.crimeCategory,
+      crimeType: caseItem.crimeType,
+      crimeCommittedDate: caseItem.crimeCommittedDate,
+      crimeCommittedTime: caseItem.crimeCommittedTime,
+      crimeDescription: caseItem.crimeDescription,
+      casePartyFirstName: "",
+      casePartyLastName: "",
+      casePartyIDNumber: "",
+      casePartyGender: "",
+      casePartyDOB: "",
+      casePartyStatus: "Single",
+      casePartyRole: { witness: false, suspect: false, defendant: false },
+      casePartyPhone: "",
+      casePartyEmail: "",
+      attachments: caseItem.attachments || []
+    })
+    setCaseParties(caseItem.caseParties || [])
+    setShowRegisterModal(true)
+  }
+
+  // Apply filters and search
   const filteredCases = cases.filter((c) => {
     const q = searchQuery.toLowerCase()
-    return (
+    const matchesSearch = 
       c.firstName.toLowerCase().includes(q) ||
       c.lastName.toLowerCase().includes(q) ||
       c.caseNumber.toLowerCase().includes(q)
-    )
+
+    const matchesCaseNumber = !selectedFilters.caseNumber || c.caseNumber === selectedFilters.caseNumber
+    const matchesStatus = !selectedFilters.status || c.status === selectedFilters.status
+
+    return matchesSearch && matchesCaseNumber && matchesStatus
   })
+
+  const filteredMyCases = myCases.filter((c) => {
+    const q = searchQuery.toLowerCase()
+    const matchesSearch = 
+      c.firstName.toLowerCase().includes(q) ||
+      c.lastName.toLowerCase().includes(q) ||
+      c.caseNumber.toLowerCase().includes(q)
+
+    const matchesCaseNumber = !selectedFilters.caseNumber || c.caseNumber === selectedFilters.caseNumber
+    const matchesStatus = !selectedFilters.status || c.status === selectedFilters.status
+
+    return matchesSearch && matchesCaseNumber && matchesStatus
+  })
+
+  // Get unique case numbers and statuses for filter dropdowns
+  const uniqueCaseNumbers = Array.from(new Set(cases.map(c => c.caseNumber)))
+  const uniqueStatuses = Array.from(new Set(cases.map(c => c.status)))
+
+  // Pagination logic
+  const paginateData = (data: Case[], page: number) => {
+    const startIndex = (page - 1) * itemsPerPage
+    const endIndex = startIndex + itemsPerPage
+    return data.slice(startIndex, endIndex)
+  }
+
+  const dashboardTotalPages = Math.ceil(filteredCases.length / itemsPerPage)
+  const manageCasesTotalPages = Math.ceil(filteredMyCases.length / itemsPerPage)
+
+  const paginatedDashboardCases = paginateData(filteredCases, dashboardPage)
+  const paginatedManageCases = paginateData(filteredMyCases, manageCasesPage)
+
+  // Shared table renderer
+  const renderCaseTable = (caseList: Case[], showEdit: boolean = false) => (
+    <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+      <table className="w-full">
+        <thead>
+          <tr className="bg-slate-50 border-b border-slate-200">
+            <th className="text-left px-6 py-4 text-sm font-semibold text-slate-700">First Name</th>
+            <th className="text-left px-6 py-4 text-sm font-semibold text-slate-700">Last Name</th>
+            <th className="text-left px-6 py-4 text-sm font-semibold text-slate-700">Case Number</th>
+            <th className="text-left px-6 py-4 text-sm font-semibold text-slate-700">Status</th>
+            <th className="text-left px-6 py-4 text-sm font-semibold text-slate-700">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {caseList.map((caseItem, index) => (
+            <tr
+              key={caseItem.id}
+              className={`border-b border-slate-100 hover:bg-slate-50 transition-colors ${
+                index % 2 === 0 ? "bg-white" : "bg-slate-50/50"
+              }`}
+            >
+              <td className="px-6 py-4 text-sm text-slate-600">{caseItem.firstName}</td>
+              <td className="px-6 py-4 text-sm text-slate-600">{caseItem.lastName}</td>
+              <td className="px-6 py-4 text-sm">
+                <button
+                  onClick={() => {
+                    setSelectedCase(caseItem)
+                    setActiveDetailsTab("info")
+                  }}
+                  className="text-slate-800 font-medium hover:text-slate-600 hover:underline transition-colors"
+                >
+                  {caseItem.caseNumber}
+                </button>
+              </td>
+              <td className="px-6 py-4 text-sm">
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                  caseItem.status === "Open"
+                    ? "bg-green-100 text-green-700"
+                    : caseItem.status === "Pending"
+                    ? "bg-yellow-100 text-yellow-700"
+                    : "bg-slate-100 text-slate-700"
+                }`}>
+                  {caseItem.status}
+                </span>
+              </td>
+              <td className="px-6 py-4">
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => {
+                      setSelectedCase(caseItem)
+                      setActiveDetailsTab("info")
+                    }}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-white text-xs font-medium rounded-md transition-colors shadow-sm"
+                  >
+                    <Eye className="w-3.5 h-3.5" />
+                    View
+                  </button>
+                  {showEdit && (
+                    <button
+                      onClick={() => handleEditCase(caseItem)}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-md transition-colors shadow-sm"
+                    >
+                      <Edit2 className="w-3.5 h-3.5" />
+                      Edit
+                    </button>
+                  )}
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
 
   return (
     <div className="min-h-screen bg-slate-50">
+      {/* Toast notifications */}
+      {toasts.map(toast => (
+        <ToastNotification key={toast.id} toast={toast} onClose={() => removeToast(toast.id)} />
+      ))}
+
       {/* Navbar */}
       <nav className="bg-slate-800 text-white px-6 py-4 flex items-center justify-between shadow-md">
         <h1 className="text-xl font-semibold flex items-center gap-2">
@@ -477,12 +815,12 @@ Be concise, professional, and helpful. If asked about specific cases, refer to t
               Case Registration
             </button>
             <button
-              onClick={() => setActiveView("myCases")}
+              onClick={() => setActiveView("manageCases")}
               className={`w-full text-left block px-4 py-3 rounded-lg font-medium transition-colors ${
-                activeView === "myCases" ? "bg-slate-800 text-white" : "text-slate-600 hover:bg-slate-100"
+                activeView === "manageCases" ? "bg-slate-800 text-white" : "text-slate-600 hover:bg-slate-100"
               }`}
             >
-              My Cases {myCases.length > 0 && `(${myCases.length})`}
+              Manage Cases {myCases.length > 0 && `(${myCases.length})`}
             </button>
             <button
               onClick={() => setActiveView("laws")}
@@ -504,6 +842,21 @@ Be concise, professional, and helpful. If asked about specific cases, refer to t
               <>
                 <h2 className="text-2xl font-semibold text-slate-800 mb-6">Case Management</h2>
 
+                {/* Register Button - Moved to top */}
+                <div className="flex justify-end mb-4">
+                  <button
+                    onClick={() => {
+                      setEditingCase(null)
+                      resetForm()
+                      setShowRegisterModal(true)
+                    }}
+                    className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-white px-6 py-3 rounded-lg font-medium shadow-sm transition-all hover:shadow-md"
+                  >
+                    <Plus className="w-5 h-5" />
+                    Register New Case
+                  </button>
+                </div>
+
                 {/* Search and Filters */}
                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-6">
                   <div className="flex flex-wrap items-center gap-3">
@@ -522,112 +875,107 @@ Be concise, professional, and helpful. If asked about specific cases, refer to t
                         <Filter className="w-4 h-4" />
                         <span>Filters:</span>
                       </div>
-                      {(["caseNumber", "suspect", "victim", "names"] as const).map((filter) => (
-                        <div key={filter} className="relative">
-                          <button
-                            onClick={() => toggleFilter(filter)}
-                            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border text-sm transition-all ${
-                              selectedFilters[filter]
-                                ? "bg-slate-800 text-white border-slate-800"
-                                : "bg-white text-slate-600 border-slate-200 hover:border-slate-300"
-                            }`}
-                          >
-                            <span className="capitalize">{filter === "caseNumber" ? "Case Number" : filter}</span>
-                            <ChevronDown className={`w-4 h-4 transition-transform ${activeFilter === filter ? "rotate-180" : ""}`} />
-                          </button>
-                          {activeFilter === filter && (
-                            <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-slate-200 rounded-lg shadow-lg z-10 overflow-hidden">
-                              <div className="max-h-40 overflow-y-auto">
-                                {filterOptions[filter].map((option) => (
-                                  <button
-                                    key={option}
-                                    onClick={() => selectFilterOption(filter, option)}
-                                    className={`w-full px-4 py-2 text-left text-sm hover:bg-slate-50 transition-colors ${
-                                      selectedFilters[filter] === option ? "bg-slate-100 text-slate-800 font-medium" : "text-slate-600"
-                                    }`}
-                                  >
-                                    {option}
-                                  </button>
-                                ))}
-                              </div>
+                      
+                      {/* Case Number Filter */}
+                      <div className="relative">
+                        <button
+                          onClick={() => toggleFilter("caseNumber")}
+                          className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border text-sm transition-all ${
+                            selectedFilters.caseNumber
+                              ? "bg-slate-800 text-white border-slate-800"
+                              : "bg-white text-slate-600 border-slate-200 hover:border-slate-300"
+                          }`}
+                        >
+                          <span>Case Number</span>
+                          <ChevronDown className={`w-4 h-4 transition-transform ${activeFilter === "caseNumber" ? "rotate-180" : ""}`} />
+                        </button>
+                        {activeFilter === "caseNumber" && (
+                          <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-slate-200 rounded-lg shadow-lg z-10 overflow-hidden">
+                            <div className="max-h-40 overflow-y-auto">
+                              {uniqueCaseNumbers.map((option) => (
+                                <button
+                                  key={option}
+                                  onClick={() => selectFilterOption("caseNumber", option)}
+                                  className={`w-full px-4 py-2 text-left text-sm hover:bg-slate-50 transition-colors ${
+                                    selectedFilters.caseNumber === option ? "bg-slate-100 text-slate-800 font-medium" : "text-slate-600"
+                                  }`}
+                                >
+                                  {option}
+                                </button>
+                              ))}
                             </div>
-                          )}
-                        </div>
-                      ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Status Filter */}
+                      <div className="relative">
+                        <button
+                          onClick={() => toggleFilter("status")}
+                          className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border text-sm transition-all ${
+                            selectedFilters.status
+                              ? "bg-slate-800 text-white border-slate-800"
+                              : "bg-white text-slate-600 border-slate-200 hover:border-slate-300"
+                          }`}
+                        >
+                          <span>Status</span>
+                          <ChevronDown className={`w-4 h-4 transition-transform ${activeFilter === "status" ? "rotate-180" : ""}`} />
+                        </button>
+                        {activeFilter === "status" && (
+                          <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-slate-200 rounded-lg shadow-lg z-10 overflow-hidden">
+                            <div className="max-h-40 overflow-y-auto">
+                              {uniqueStatuses.map((option) => (
+                                <button
+                                  key={option}
+                                  onClick={() => selectFilterOption("status", option)}
+                                  className={`w-full px-4 py-2 text-left text-sm hover:bg-slate-50 transition-colors ${
+                                    selectedFilters.status === option ? "bg-slate-100 text-slate-800 font-medium" : "text-slate-600"
+                                  }`}
+                                >
+                                  {option}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
-                  {Object.values(selectedFilters).some(Boolean) && (
+                  {(selectedFilters.caseNumber || selectedFilters.status) && (
                     <div className="flex items-center gap-2 mt-3 pt-3 border-t border-slate-100">
                       <span className="text-xs text-slate-500">Active:</span>
-                      {Object.entries(selectedFilters).map(([key, value]) =>
-                        value ? (
-                          <span key={key} className="inline-flex items-center gap-1 px-2 py-1 bg-slate-100 text-slate-700 text-xs rounded-md">
-                            {value}
-                            <button onClick={() => selectFilterOption(key, value)} className="hover:text-slate-900">x</button>
-                          </span>
-                        ) : null
+                      {selectedFilters.caseNumber && (
+                        <span className="inline-flex items-center gap-1 px-2 py-1 bg-slate-100 text-slate-700 text-xs rounded-md">
+                          {selectedFilters.caseNumber}
+                          <button onClick={() => selectFilterOption("caseNumber", selectedFilters.caseNumber)} className="hover:text-slate-900">×</button>
+                        </span>
+                      )}
+                      {selectedFilters.status && (
+                        <span className="inline-flex items-center gap-1 px-2 py-1 bg-slate-100 text-slate-700 text-xs rounded-md">
+                          {selectedFilters.status}
+                          <button onClick={() => selectFilterOption("status", selectedFilters.status)} className="hover:text-slate-900">×</button>
+                        </span>
                       )}
                     </div>
                   )}
                 </div>
 
-                {/* Data Table */}
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="bg-slate-50 border-b border-slate-200">
-                        <th className="text-left px-6 py-4 text-sm font-semibold text-slate-700">First Name</th>
-                        <th className="text-left px-6 py-4 text-sm font-semibold text-slate-700">Last Name</th>
-                        <th className="text-left px-6 py-4 text-sm font-semibold text-slate-700">Case Number</th>
-                        <th className="text-left px-6 py-4 text-sm font-semibold text-slate-700">Status</th>
-                        <th className="text-left px-6 py-4 text-sm font-semibold text-slate-700">Case Summary</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredCases.map((caseItem, index) => (
-                        <tr key={caseItem.id} className={`border-b border-slate-100 hover:bg-slate-50 transition-colors ${index % 2 === 0 ? "bg-white" : "bg-slate-50/50"}`}>
-                          <td className="px-6 py-4 text-sm text-slate-600">{caseItem.firstName}</td>
-                          <td className="px-6 py-4 text-sm text-slate-600">{caseItem.lastName}</td>
-                          <td className="px-6 py-4 text-sm text-slate-800 font-medium">{caseItem.caseNumber}</td>
-                          <td className="px-6 py-4 text-sm">
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                              caseItem.status === "Open" ? "bg-green-100 text-green-700"
-                              : caseItem.status === "Pending" ? "bg-yellow-100 text-yellow-700"
-                              : "bg-slate-100 text-slate-700"
-                            }`}>
-                              {caseItem.status}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4">
-                            <button
-                              onClick={() => setSelectedCase(caseItem)}
-                              className="text-sm text-blue-600 hover:text-blue-800 hover:underline transition-colors cursor-pointer"
-                            >
-                              {caseItem.description?.substring(0, 50) || "No description"}...
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-
-                <div className="flex justify-end mt-6">
-                  <button
-                    onClick={() => setShowRegisterModal(true)}
-                    className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-white px-6 py-3 rounded-lg font-medium shadow-sm transition-all hover:shadow-md"
-                  >
-                    <Plus className="w-5 h-5" />
-                    Register New Case
-                  </button>
-                </div>
+                {renderCaseTable(paginatedDashboardCases)}
+                
+                {dashboardTotalPages > 1 && (
+                  <Pagination 
+                    currentPage={dashboardPage} 
+                    totalPages={dashboardTotalPages} 
+                    onPageChange={setDashboardPage} 
+                  />
+                )}
               </>
             )}
 
-            {/* My Cases View */}
-            {activeView === "myCases" && (
+            {/* Manage Cases View */}
+            {activeView === "manageCases" && (
               <>
-                <h2 className="text-2xl font-semibold text-slate-800 mb-6">My Cases</h2>
+                <h2 className="text-2xl font-semibold text-slate-800 mb-6">Manage Cases</h2>
                 {myCases.length === 0 ? (
                   <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-12 text-center">
                     <Eye className="w-12 h-12 text-slate-300 mx-auto mb-4" />
@@ -641,45 +989,33 @@ Be concise, professional, and helpful. If asked about specific cases, refer to t
                     </button>
                   </div>
                 ) : (
-                  <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                    <table className="w-full">
-                      <thead>
-                        <tr className="bg-slate-50 border-b border-slate-200">
-                          <th className="text-left px-6 py-4 text-sm font-semibold text-slate-700">First Name</th>
-                          <th className="text-left px-6 py-4 text-sm font-semibold text-slate-700">Last Name</th>
-                          <th className="text-left px-6 py-4 text-sm font-semibold text-slate-700">Case Number</th>
-                          <th className="text-left px-6 py-4 text-sm font-semibold text-slate-700">Status</th>
-                          <th className="text-left px-6 py-4 text-sm font-semibold text-slate-700">Case Summary</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {myCases.map((caseItem, index) => (
-                          <tr key={caseItem.id} className={`border-b border-slate-100 hover:bg-slate-50 transition-colors ${index % 2 === 0 ? "bg-white" : "bg-slate-50/50"}`}>
-                            <td className="px-6 py-4 text-sm text-slate-600">{caseItem.firstName}</td>
-                            <td className="px-6 py-4 text-sm text-slate-600">{caseItem.lastName}</td>
-                            <td className="px-6 py-4 text-sm text-slate-800 font-medium">{caseItem.caseNumber}</td>
-                            <td className="px-6 py-4 text-sm">
-                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                caseItem.status === "Open" ? "bg-green-100 text-green-700"
-                                : caseItem.status === "Pending" ? "bg-yellow-100 text-yellow-700"
-                                : "bg-slate-100 text-slate-700"
-                              }`}>
-                                {caseItem.status}
-                              </span>
-                            </td>
-                            <td className="px-6 py-4">
-                              <button
-                                onClick={() => setSelectedCase(caseItem)}
-                                className="text-sm text-blue-600 hover:text-blue-800 hover:underline transition-colors cursor-pointer"
-                              >
-                                {caseItem.description?.substring(0, 50) || "No description"}...
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                  <>
+                    {/* Search and Filters for Manage Cases */}
+                    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-6">
+                      <div className="flex flex-wrap items-center gap-3">
+                        <div className="relative flex-1 min-w-64">
+                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                          <input
+                            type="text"
+                            placeholder="Search cases..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-800 focus:border-transparent transition-all"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {renderCaseTable(paginatedManageCases, true)}
+                    
+                    {manageCasesTotalPages > 1 && (
+                      <Pagination 
+                        currentPage={manageCasesPage} 
+                        totalPages={manageCasesTotalPages} 
+                        onPageChange={setManageCasesPage} 
+                      />
+                    )}
+                  </>
                 )}
               </>
             )}
@@ -688,9 +1024,57 @@ Be concise, professional, and helpful. If asked about specific cases, refer to t
             {activeView === "laws" && (
               <>
                 <h2 className="text-2xl font-semibold text-slate-800 mb-6">Laws</h2>
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-12 text-center">
-                  <h3 className="text-lg font-medium text-slate-700 mb-2">Laws Section</h3>
-                  <p className="text-slate-500">Coming soon — Legal reference materials will be available here.</p>
+                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                  <h3 className="text-lg font-medium text-slate-700 mb-4">Legal Reference Materials</h3>
+                  <p className="text-slate-500 mb-6">Upload legal documents, statutes, and reference materials.</p>
+                  
+                  {/* File Upload Section */}
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">
+                        Upload Attachments
+                      </label>
+                      <input
+                        type="file"
+                        multiple
+                        onChange={(e) => {
+                          const files = Array.from(e.target.files || [])
+                          setLawAttachments(prev => [...prev, ...files])
+                        }}
+                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-800 focus:border-transparent file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-slate-800 file:text-white hover:file:bg-slate-700 transition-all"
+                      />
+                    </div>
+
+                    {lawAttachments.length > 0 && (
+                      <div className="space-y-2">
+                        <h4 className="text-sm font-medium text-slate-700">
+                          Uploaded Files ({lawAttachments.length})
+                        </h4>
+                        {lawAttachments.map((file, idx) => (
+                          <div
+                            key={idx}
+                            className="flex items-center gap-3 bg-slate-50 border border-slate-200 rounded-lg p-3 hover:border-slate-300 hover:bg-white transition-all group"
+                          >
+                            <div className="w-10 h-10 rounded-lg bg-white border border-slate-200 flex items-center justify-center flex-shrink-0">
+                              {getFileIcon(file)}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="text-sm font-medium text-slate-800 truncate">{file.name}</div>
+                              <div className="text-xs text-slate-400 mt-0.5">
+                                {formatFileSize(file.size)}
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => setLawAttachments(prev => prev.filter((_, i) => i !== idx))}
+                              className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </>
             )}
@@ -698,14 +1082,13 @@ Be concise, professional, and helpful. If asked about specific cases, refer to t
         </main>
       </div>
 
-      {/* ── Chatbot FAB ─────────────────────────────────────────────── */}
-      <div className="fixed bottom-6 left-6 z-40 flex flex-col items-start gap-2">
-
-        {/* Chat bubble panel */}
+      {/* ── Chatbot FAB - Moved to bottom-right ─────────────────────── */}
+      <div className="fixed bottom-6 right-6 z-40 flex flex-col items-end gap-2">
         {chatOpen && (
-          <div className="w-80 bg-white rounded-2xl border border-slate-200 shadow-xl overflow-hidden flex flex-col"
-               style={{ height: "420px" }}>
-            {/* Header */}
+          <div
+            className="w-80 bg-white rounded-2xl border border-slate-200 shadow-xl overflow-hidden flex flex-col"
+            style={{ height: "420px" }}
+          >
             <div className="bg-slate-800 px-4 py-3 flex items-center gap-3 flex-shrink-0">
               <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center flex-shrink-0">
                 <MessageCircle className="w-4 h-4 text-slate-300" />
@@ -721,8 +1104,6 @@ Be concise, professional, and helpful. If asked about specific cases, refer to t
                 <X className="w-4 h-4" />
               </button>
             </div>
-
-            {/* Messages */}
             <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50">
               {chatMessages.map((msg) => (
                 <div key={msg.id} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
@@ -744,8 +1125,6 @@ Be concise, professional, and helpful. If asked about specific cases, refer to t
               )}
               <div ref={chatBottomRef} />
             </div>
-
-            {/* Input */}
             <div className="flex items-center gap-2 px-3 py-3 border-t border-slate-200 bg-white flex-shrink-0">
               <input
                 type="text"
@@ -765,18 +1144,12 @@ Be concise, professional, and helpful. If asked about specific cases, refer to t
             </div>
           </div>
         )}
-
-        {/* FAB button */}
         <button
           onClick={() => setChatOpen(!chatOpen)}
           className="w-12 h-12 rounded-full bg-slate-800 hover:bg-slate-700 text-white flex items-center justify-center shadow-lg transition-all hover:shadow-xl hover:scale-105 border-2 border-slate-700 relative"
           title="Ask CaseWise AI"
         >
-          {chatOpen
-            ? <X className="w-5 h-5" />
-            : <MessageCircle className="w-5 h-5" />
-          }
-          {/* Online dot */}
+          {chatOpen ? <X className="w-5 h-5" /> : <MessageCircle className="w-5 h-5" />}
           {!chatOpen && (
             <span className="absolute bottom-0.5 right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-white" />
           )}
@@ -784,16 +1157,27 @@ Be concise, professional, and helpful. If asked about specific cases, refer to t
       </div>
       {/* ──────────────────────────────────────────────────────────────── */}
 
-      {/* Register Modal */}
+      {/* Register/Edit Modal */}
       {showRegisterModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
             <div className="flex items-center justify-between p-6 border-b border-slate-200 bg-gradient-to-r from-blue-50 to-indigo-50">
               <div>
-                <h3 className="text-xl font-semibold text-slate-800">Register New Case</h3>
-                <p className="text-sm text-slate-600 mt-1">Fill in the case details and add involved parties</p>
+                <h3 className="text-xl font-semibold text-slate-800">
+                  {editingCase ? "Edit Case" : "Register New Case"}
+                </h3>
+                <p className="text-sm text-slate-600 mt-1">
+                  {editingCase ? "Update case details and parties" : "Fill in the case details and add involved parties"}
+                </p>
               </div>
-              <button onClick={() => setShowRegisterModal(false)} className="text-slate-400 hover:text-slate-600 transition-colors p-2 hover:bg-white rounded-lg">
+              <button 
+                onClick={() => {
+                  setShowRegisterModal(false)
+                  setEditingCase(null)
+                  resetForm()
+                }} 
+                className="text-slate-400 hover:text-slate-600 transition-colors p-2 hover:bg-white rounded-lg"
+              >
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -806,7 +1190,12 @@ Be concise, professional, and helpful. If asked about specific cases, refer to t
                   <div className="space-y-4">
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-1">Case Number</label>
-                      <input type="text" value={generateCaseNumber()} readOnly className="w-full px-3 py-2 border border-slate-300 rounded-md bg-slate-50 text-slate-600" />
+                      <input 
+                        type="text" 
+                        value={editingCase ? editingCase.caseNumber : generateCaseNumber()} 
+                        readOnly 
+                        className="w-full px-3 py-2 border border-slate-300 rounded-md bg-slate-50 text-slate-600" 
+                      />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-1">Case Title</label>
@@ -997,7 +1386,14 @@ Be concise, professional, and helpful. If asked about specific cases, refer to t
             </div>
 
             <div className="flex gap-3 p-6 border-t border-slate-200 bg-gradient-to-r from-slate-50 to-white">
-              <button onClick={() => setShowRegisterModal(false)} className="flex-1 px-4 py-3 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors font-medium">
+              <button 
+                onClick={() => {
+                  setShowRegisterModal(false)
+                  setEditingCase(null)
+                  resetForm()
+                }} 
+                className="flex-1 px-4 py-3 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors font-medium"
+              >
                 Cancel
               </button>
               <button
@@ -1005,59 +1401,208 @@ Be concise, professional, and helpful. If asked about specific cases, refer to t
                 disabled={!newCase.caseTitle || caseParties.length === 0}
                 className="flex-1 px-4 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 transition-all duration-200 font-medium shadow-sm hover:shadow-md disabled:from-slate-300 disabled:to-slate-400 disabled:cursor-not-allowed disabled:shadow-none"
               >
-                Register Case
+                {editingCase ? "Update Case" : "Register Case"}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Case Details Modal */}
+      {/* ── Case Details Modal ──────────────────────────────────────── */}
       {selectedCase && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
-            <div className="flex items-center justify-between p-6 border-b border-slate-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 border-b border-slate-200 bg-gradient-to-r from-slate-800 to-slate-700">
               <div>
-                <h3 className="text-xl font-semibold text-slate-800">Case Details</h3>
-                <p className="text-sm text-slate-600 mt-1">{selectedCase.caseNumber}</p>
+                <h3 className="text-xl font-semibold text-white">Case Details</h3>
+                <p className="text-sm text-slate-300 mt-1">{selectedCase.caseNumber}</p>
               </div>
-              <button onClick={() => setSelectedCase(null)} className="text-slate-400 hover:text-slate-600 transition-colors p-2 hover:bg-white rounded-lg">
+              <button
+                onClick={() => setSelectedCase(null)}
+                className="text-slate-300 hover:text-white transition-colors p-2 hover:bg-slate-600 rounded-lg"
+              >
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="flex-1 overflow-y-auto p-6">
-              <div className="space-y-6">
-                <div>
-                  <h4 className="text-base font-semibold text-slate-800 mb-4">Case Information</h4>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <span className="text-sm font-medium text-slate-700">Case Number</span>
-                      <div className="text-slate-600">{selectedCase.caseNumber}</div>
-                    </div>
-                    <div>
-                      <span className="text-sm font-medium text-slate-700">Status</span>
-                      <div className="text-slate-600">{selectedCase.status}</div>
-                    </div>
-                    <div>
-                      <span className="text-sm font-medium text-slate-700">First Name</span>
-                      <div className="text-slate-600">{selectedCase.firstName}</div>
-                    </div>
-                    <div>
-                      <span className="text-sm font-medium text-slate-700">Last Name</span>
-                      <div className="text-slate-600">{selectedCase.lastName}</div>
-                    </div>
-                  </div>
-                </div>
-                <div>
-                  <h4 className="text-base font-semibold text-slate-800 mb-4">Case Description</h4>
-                  <div className="bg-slate-50 rounded-lg p-4">
-                    <p className="text-sm text-slate-600">{selectedCase.description || "No description available"}</p>
-                  </div>
-                </div>
-              </div>
+
+            {/* Tabs */}
+            <div className="flex border-b border-slate-200 bg-white px-6 pt-4 gap-1">
+              {(["info", "parties", "attachments"] as const).map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveDetailsTab(tab)}
+                  className={`px-4 py-2 text-sm font-medium rounded-t-lg border-b-2 transition-colors capitalize ${
+                    activeDetailsTab === tab
+                      ? "border-slate-800 text-slate-800 bg-slate-50"
+                      : "border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50"
+                  }`}
+                >
+                  {tab === "info" ? "Case Info" : tab === "parties" ? `Parties (${selectedCase.caseParties?.length ?? 0})` : `Attachments (${selectedCase.attachments?.length ?? 0})`}
+                </button>
+              ))}
             </div>
+
+            {/* Tab Content */}
+            <div className="flex-1 overflow-y-auto p-6">
+
+              {/* ── Info Tab ── */}
+              {activeDetailsTab === "info" && (
+                <div className="space-y-6">
+                  {/* Case Overview */}
+                  <div>
+                    <h4 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3">Case Overview</h4>
+                    <div className="bg-slate-50 rounded-lg p-4 grid grid-cols-2 gap-4">
+                      {[
+                        ["Case Number", selectedCase.caseNumber],
+                        ["Status", selectedCase.status],
+                        ["First Name", selectedCase.firstName],
+                        ["Last Name", selectedCase.lastName],
+                        ["Court", selectedCase.court || "—"],
+                        ["Crime Category", selectedCase.crimeCategory || "—"],
+                        ["Crime Type", selectedCase.crimeType || "—"],
+                        ["Crime Date", selectedCase.crimeCommittedDate || "—"],
+                        ["Crime Time", selectedCase.crimeCommittedTime || "—"],
+                      ].map(([label, value]) => (
+                        <div key={label}>
+                          <span className="text-xs font-medium text-slate-500 uppercase tracking-wide">{label}</span>
+                          <div className={`text-sm mt-0.5 ${label === "Status"
+                            ? selectedCase.status === "Open"
+                              ? "inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700"
+                              : selectedCase.status === "Pending"
+                              ? "inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700"
+                              : "inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700"
+                            : "text-slate-700 font-medium"}`}>
+                            {value}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Case Summary */}
+                  {selectedCase.caseSummary && (
+                    <div>
+                      <h4 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3">Case Summary</h4>
+                      <div className="bg-slate-50 rounded-lg p-4">
+                        <p className="text-sm text-slate-700 leading-relaxed">{selectedCase.caseSummary}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Crime Description */}
+                  <div>
+                    <h4 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3">Crime Description</h4>
+                    <div className="bg-slate-50 rounded-lg p-4">
+                      <p className="text-sm text-slate-700 leading-relaxed">
+                        {selectedCase.crimeDescription || selectedCase.description || "No description available."}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ── Parties Tab ── */}
+              {activeDetailsTab === "parties" && (
+                <div className="space-y-3">
+                  {!selectedCase.caseParties || selectedCase.caseParties.length === 0 ? (
+                    <div className="text-center py-12 bg-slate-50 rounded-lg border-2 border-dashed border-slate-200">
+                      <User className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+                      <p className="text-sm text-slate-500">No case parties on record</p>
+                    </div>
+                  ) : (
+                    selectedCase.caseParties.map((party) => (
+                      <div key={party.id} className="bg-slate-50 border border-slate-200 rounded-lg overflow-hidden">
+                        <div className="flex items-center gap-3 p-4">
+                          <div className="w-10 h-10 bg-slate-800 rounded-full flex items-center justify-center flex-shrink-0">
+                            <User className="w-5 h-5 text-white" />
+                          </div>
+                          <div className="flex-1">
+                            <div className="font-semibold text-slate-800">{party.firstName} {party.lastName}</div>
+                            <div className="flex flex-wrap gap-2 mt-1">
+                              <span className="px-2 py-0.5 bg-orange-100 text-orange-700 rounded-full text-xs font-medium capitalize">{party.role}</span>
+                              {party.gender && <span className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">{party.gender}</span>}
+                              {party.status && <span className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded-full text-xs font-medium">{party.status}</span>}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="border-t border-slate-200 px-4 py-3 grid grid-cols-2 gap-3 bg-white">
+                          {[
+                            ["ID Number", party.idNumber],
+                            ["Date of Birth", party.dateOfBirth],
+                            ["Phone", party.phone],
+                            ["Email", party.email],
+                          ].map(([label, value]) => (
+                            <div key={label}>
+                              <span className="text-xs font-medium text-slate-400 uppercase tracking-wide">{label}</span>
+                              <div className="text-sm text-slate-700 mt-0.5 font-mono truncate">{value || "—"}</div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+
+              {/* ── Attachments Tab ── */}
+              {activeDetailsTab === "attachments" && (
+                <div className="space-y-3">
+                  {!selectedCase.attachments || selectedCase.attachments.length === 0 ? (
+                    <div className="text-center py-12 bg-slate-50 rounded-lg border-2 border-dashed border-slate-200">
+                      <Paperclip className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+                      <p className="text-sm text-slate-500">No attachments uploaded for this case</p>
+                    </div>
+                  ) : (
+                    <>
+                      <p className="text-sm text-slate-500 mb-4">
+                        {selectedCase.attachments.length} file{selectedCase.attachments.length !== 1 ? "s" : ""} attached — click to open, or download individually.
+                      </p>
+                      {selectedCase.attachments.map((file, idx) => (
+                        <div
+                          key={idx}
+                          className="flex items-center gap-3 bg-slate-50 border border-slate-200 rounded-lg p-4 hover:border-slate-300 hover:bg-white transition-all group"
+                        >
+                          <div className="w-10 h-10 rounded-lg bg-white border border-slate-200 flex items-center justify-center flex-shrink-0 shadow-sm group-hover:shadow transition-shadow">
+                            {getFileIcon(file)}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-sm font-medium text-slate-800 truncate">{file.name}</div>
+                            <div className="text-xs text-slate-400 mt-0.5">
+                              {formatFileSize(file.size)} · {file.type || "Unknown type"}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1 flex-shrink-0">
+                            <button
+                              onClick={() => handleOpenAttachment(file)}
+                              title={file.type.startsWith("image/") || file.type === "application/pdf" ? "Open in new tab" : "Open file"}
+                              className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-800 hover:bg-slate-200 transition-colors"
+                            >
+                              <ExternalLink className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDownloadAttachment(file)}
+                              title="Download"
+                              className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-800 hover:bg-slate-200 transition-colors"
+                            >
+                              <Download className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
             <div className="flex gap-3 p-6 border-t border-slate-200 bg-gradient-to-r from-slate-50 to-white">
-              <button onClick={() => setSelectedCase(null)} className="flex-1 px-4 py-3 bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition-colors font-medium shadow-sm hover:shadow-md">
+              <button
+                onClick={() => setSelectedCase(null)}
+                className="flex-1 px-4 py-3 bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition-colors font-medium shadow-sm hover:shadow-md"
+              >
                 Close
               </button>
             </div>
@@ -1066,4 +1611,25 @@ Be concise, professional, and helpful. If asked about specific cases, refer to t
       )}
     </div>
   )
+}
+
+// Add CSS animation for toast
+if (typeof document !== 'undefined') {
+  const style = document.createElement('style')
+  style.textContent = `
+    @keyframes slide-in {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+    .animate-slide-in {
+      animation: slide-in 0.3s ease-out;
+    }
+  `
+  document.head.appendChild(style)
 }
