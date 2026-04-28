@@ -219,6 +219,7 @@ export default function CaseWiseDashboard() {
   const [expanded,    setExpanded]    = useState<Set<string>>(new Set())
   const [toasts,      setToasts]      = useState<Toast[]>([])
   const [lawFiles,    setLawFiles]    = useState<File[]>([])
+  const [lawSaving,   setLawSaving]   = useState(false)   // ← NEW
   const [prevUrl,     setPrevUrl]     = useState<string|null>(null)
   const [dashPage,    setDashPage]    = useState(1)
   const [manPage,     setManPage]     = useState(1)
@@ -313,6 +314,33 @@ export default function CaseWiseDashboard() {
     } catch { const c=mk(); setCases(p=>[...p,c]); setMyCases(p=>[...p,c]); setShowModal(false); reset(); toast("Case registered (offline mode)","info") }
   }
 
+  // ── NEW: Save law files ───────────────────────────────────
+  const saveLawFiles = async () => {
+    if (!lawFiles.length || lawSaving) return
+    setLawSaving(true)
+    try {
+      const fd = new FormData()
+      lawFiles.forEach(f => fd.append("files", f))
+      const token = authToken ?? localStorage.getItem("authToken")
+      const r = await fetch("http://localhost:8080/api/laws/upload", {
+        method: "POST",
+        headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        body: fd,
+      })
+      if (r.ok) {
+        toast(`${lawFiles.length} file${lawFiles.length !== 1 ? "s" : ""} saved successfully`)
+        setLawFiles([])
+      } else {
+        toast("Failed to save files. Please try again.", "error")
+      }
+    } catch {
+      toast("Saved locally — server unavailable.", "info")
+      setLawFiles([])
+    } finally {
+      setLawSaving(false)
+    }
+  }
+
   const toggleF = (k:string) => setActiveFilter(p=>p===k?null:k)
   const applyF  = (k:string, v:string) => { setSelFilters(p=>({...p,[k]:p[k as keyof typeof p]===v?"":v})); setActiveFilter(null) }
   const filter  = (list:Case[]) => list.filter(c=>{
@@ -339,22 +367,27 @@ export default function CaseWiseDashboard() {
   }
 
   const chatSend = async () => {
-    const t=chatIn.trim(); if(!t||chatBusy) return
-    const um:ChatMessage={id:Date.now().toString(),role:"user",content:t}
-    const h=[...chatMsgs,um]; setChatMsgs(h); setChatIn(""); setChatBusy(true)
+    const t = chatIn.trim();
+    if (!t || chatBusy) return;
+    const um = { id: Date.now().toString(), role: "user" as const, content: t };
+    const h = [...chatMsgs, um];
+    setChatMsgs(h);
+    setChatIn("");
+    setChatBusy(true);
     try {
-      const r=await fetch("https://api.anthropic.com/v1/messages",{
-        method:"POST", headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1000,
-          system:`You are CaseWise AI, a helpful legal assistant for Rwanda.\nCases:\n${cases.map(c=>`- ${c.caseNumber}: ${c.firstName} ${c.lastName} (${c.status}) — ${c.description}`).join("\n")}\nBe concise and professional.`,
-          messages:h.filter(m=>m.id!=="w").map(m=>({role:m.role,content:m.content}))})
-      })
-      const d=await r.json()
-      setChatMsgs(p=>[...p,{id:Date.now().toString(),role:"assistant",content:d.content?.[0]?.text??"No response."}])
+      const r = await fetch("http://localhost:8000/api/chat/query", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: t })
+      });
+      const d = await r.json();
+      setChatMsgs(p => [...p, { id: Date.now().toString(), role: "assistant", content: d.response ?? "No response." }]);
     } catch {
-      setChatMsgs(p=>[...p,{id:Date.now().toString(),role:"assistant",content:"Connection error. Please try again."}])
-    } finally { setChatBusy(false) }
-  }
+      setChatMsgs(p => [...p, { id: Date.now().toString(), role: "assistant", content: "Connection error. Please try again." }]);
+    } finally {
+      setChatBusy(false);
+    }
+  };
 
   // ── inline FilterBar ─────────────────────────────────
   function FilterBar() {
@@ -650,26 +683,63 @@ export default function CaseWiseDashboard() {
                         </div>
                         <span className="text-xs font-bold text-slate-500 group-hover:text-slate-800 transition-colors">Click to upload files</span>
                         <span className="text-[11px] text-slate-400 mt-0.5 font-medium">PDF, DOCX, images supported</span>
-                        <input type="file" multiple className="hidden" onChange={e=>setLawFiles(p=>[...p,...Array.from(e.target.files??[])])}/>
-                      </label>
-                      {lawFiles.length>0 && (
+                        <input type="file" multiple className="hidden" name="file" onChange={e=>setLawFiles(p=>[...p,...Array.from(e.target.files??[])])}/>
+                      </label> 
+
+                      {lawFiles.length > 0 && (
                         <div className="mt-4 space-y-2">
+                          {/* ── file list header ── */}
                           <div className="flex items-center justify-between mb-2">
-                            <p className="text-xs font-bold text-slate-600">{lawFiles.length} file{lawFiles.length!==1?"s":""} uploaded</p>
-                            <button onClick={()=>setLawFiles([])} className="text-[11px] text-slate-400 hover:text-rose-500 transition-colors font-semibold">Clear all</button>
+                            <p className="text-xs font-bold text-slate-600">
+                              {lawFiles.length} file{lawFiles.length !== 1 ? "s" : ""} ready to save
+                            </p>
+                            <button
+                              onClick={() => setLawFiles([])}
+                              className="text-[11px] text-slate-400 hover:text-rose-500 transition-colors font-semibold"
+                            >
+                              Clear all
+                            </button>
                           </div>
-                          {lawFiles.map((f,i)=>(
+
+                          {/* ── file rows ── */}
+                          {lawFiles.map((f, i) => (
                             <div key={i} className="flex items-center gap-3 p-3 bg-slate-50 border border-slate-200 rounded-xl hover:bg-white transition-all">
-                              <div className="w-8 h-8 bg-white border border-slate-200 rounded-lg flex items-center justify-center shrink-0 shadow-sm"><FileIcon file={f}/></div>
+                              <div className="w-8 h-8 bg-white border border-slate-200 rounded-lg flex items-center justify-center shrink-0 shadow-sm">
+                                <FileIcon file={f}/>
+                              </div>
                               <div className="flex-1 min-w-0">
                                 <p className="text-xs font-semibold text-slate-700 truncate">{f.name}</p>
                                 <p className="text-[11px] text-slate-400 font-medium">{formatBytes(f.size)}</p>
                               </div>
-                              <button onClick={()=>setLawFiles(p=>p.filter((_,j)=>j!==i))} className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-300 hover:text-rose-500 hover:bg-rose-50 transition-colors">
+                              <button
+                                onClick={() => setLawFiles(p => p.filter((_, j) => j !== i))}
+                                className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-300 hover:text-rose-500 hover:bg-rose-50 transition-colors"
+                              >
                                 <X className="w-3.5 h-3.5"/>
                               </button>
                             </div>
                           ))}
+
+                          {/* ── Save button ── */}
+                          <div className="pt-3 mt-1 border-t border-slate-100">
+                            <button
+                              onClick={saveLawFiles}
+                              disabled={lawSaving}
+                              className="w-full flex items-center justify-center gap-2 py-2.5 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-slate-400/30"
+                            >
+                              {lawSaving ? (
+                                <>
+                                  <Loader2 className="w-3.5 h-3.5 animate-spin"/>
+                                  Saving…
+                                </>
+                              ) : (
+                                <>
+                                  <Download className="w-3.5 h-3.5"/>
+                                  Save {lawFiles.length} File{lawFiles.length !== 1 ? "s" : ""}
+                                </>
+                              )}
+                            </button>
+                          </div>
                         </div>
                       )}
                     </div>
